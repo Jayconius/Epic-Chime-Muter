@@ -4,7 +4,8 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path $csc)) { $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe' }
-$refs = '/r:System.dll', '/r:System.Core.dll', '/r:System.Drawing.dll', '/r:System.Windows.Forms.dll'
+# /codepage:65001 = sources are UTF-8 (csc otherwise assumes the system ANSI code page and garbles symbols like the bullet and ellipsis).
+$refs = '/codepage:65001', '/r:System.dll', '/r:System.Core.dll', '/r:System.Drawing.dll', '/r:System.Windows.Forms.dll'
 $lib = "$root\src\Art.cs", "$root\src\ChimeManager.cs", "$root\src\MainForm.cs"
 
 New-Item -ItemType Directory -Force "$root\build", "$root\dist" | Out-Null

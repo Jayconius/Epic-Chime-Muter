@@ -40,7 +40,15 @@ The **Friends / Party update** for the Epic Games Launcher added **social chimes
 
 Flip it again any time to bring them back. Nothing is deleted.
 
-Click any sound in the list to hear what it sounds like.
+### Only want to mute some of them?
+
+Each sound has its own switch. For example, you can mute the party join/leave/message chimes but keep the push-to-talk beeps. Click **▶** next to a sound to hear it first.
+
+<p align="center">
+  <img src="docs/screenshot-custom.png" alt="Custom mix: muting individual chimes" width="400">
+</p>
+
+Your choices are remembered, so if an Epic update brings a sound back, the app knows which ones you wanted muted.
 
 ## How it works
 
@@ -67,7 +75,7 @@ Epic Chime Muter adds `.off` to the end of each file name so the launcher can't 
 
 ### Chimes came back after an Epic update?
 
-Launcher updates can restore the original files. Just open Epic Chime Muter again. It detects the restored sounds and shows **"Some chimes are back"**. Flip the switch to mute them all again.
+Launcher updates can restore the original files. Just open Epic Chime Muter again. It detects the sounds you had muted that are playing again, marks them **Back on**, and shows a **Re-mute them** button that restores your exact setup.
 
 <p align="center">
   <img src="docs/screenshot-mixed.png" alt="Some chimes are back" width="400">
@@ -84,11 +92,26 @@ The app isn't code-signed (signing certificates are expensive for a free tool). 
 **Is this safe? Will it break the launcher or get me banned?**<br>
 It only renames six sound files. It doesn't touch Fortnite, your games, or anything Epic's anti-cheat looks at. The launcher just stays quiet when a party event happens.
 
-**My launcher is installed somewhere else.**<br>
-The app checks both `Program Files` and `Program Files (x86)`. If it can't find the folder, click **Browse…** and pick the `SocialChimes` folder yourself. It will remember your choice.
+**My launcher is installed somewhere else, or Epic moved the chimes folder.**<br>
+The app finds the folder automatically. It checks, in order:
+
+1. a folder you picked yourself
+2. the default location in `Program Files` / `Program Files (x86)`
+3. where Windows says the Epic Games Launcher is installed
+4. where the running launcher is
+5. a search through the launcher's folders for the chime files
+
+If it still can't find them, open **⚙ Settings** (top right) and click **Choose folder…**. You can pick the `SocialChimes` folder itself, or any folder above it (like `Epic Games`), and the app will search inside it. It remembers your choice, and **Auto-detect** switches back to automatic.
+
+<p align="center">
+  <img src="docs/screenshot-settings.png" alt="Settings: chimes folder" width="400">
+</p>
 
 **Keyboard shortcuts?**<br>
-`Space` / `Enter` toggles the chimes, `F5` refreshes, and `Esc` closes the app.
+`Space` / `Enter` toggles all chimes, `F5` refreshes, and `Esc` closes settings or the app.
+
+**Where are my settings stored?**<br>
+In `%AppData%\EpicChimeMuter\settings.ini`, which holds your picked folder and which chimes you muted. Delete it to reset.
 
 ## Build from source
 

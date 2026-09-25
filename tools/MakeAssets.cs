@@ -1,4 +1,4 @@
-﻿// Build-time helper: renders the app icon and the README graphics using the app's own drawing code.
+// Build-time helper: renders the app icon and the README graphics using the app's own drawing code.
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,9 +31,15 @@ namespace EpicChimeMuter
             WriteIcon(Path.Combine(assets, "icon.ico"));
             using (Bitmap logo = RenderLogo(256)) logo.Save(Path.Combine(docs, "logo.png"), ImageFormat.Png);
 
-            Screenshot(Path.Combine(docs, "screenshot-on.png"), Demo(new[] { false, false, false, false, false, false }));
-            Screenshot(Path.Combine(docs, "screenshot-muted.png"), Demo(new[] { true, true, true, true, true, true }));
-            Screenshot(Path.Combine(docs, "screenshot-mixed.png"), Demo(new[] { true, false, true, false, true, true }));
+            bool[] none = { false, false, false, false, false, false }, all = { true, true, true, true, true, true };
+            // Custom mix: party sounds muted, push-to-talk sounds kept.
+            bool[] custom = { true, true, true, true, false, false };
+            Screenshot(Path.Combine(docs, "screenshot-on.png"), Demo(none, none), false);
+            Screenshot(Path.Combine(docs, "screenshot-muted.png"), Demo(all, all), false);
+            Screenshot(Path.Combine(docs, "screenshot-custom.png"), Demo(custom, custom), false);
+            // An Epic update put two muted chimes back.
+            Screenshot(Path.Combine(docs, "screenshot-mixed.png"), Demo(new[] { true, false, true, false, true, true }, all), false);
+            Screenshot(Path.Combine(docs, "screenshot-settings.png"), Demo(all, all), true);
 
             Banner(Path.Combine(docs, "banner.png"));
             HowItWorks(Path.Combine(docs, "how-it-works.png"));
@@ -41,12 +47,17 @@ namespace EpicChimeMuter
             return 0;
         }
 
-        static ChimeManager Demo(bool[] muted)
+        // muted: what's on disk. wanted: what the user asked to be muted.
+        static ChimeManager Demo(bool[] muted, bool[] wanted)
         {
             var files = new List<ChimeFile>();
+            var wantedNames = new List<string>();
             for (int i = 0; i < ChimeNames.Length; i++)
+            {
                 files.Add(new ChimeFile(ChimeNames[i], ChimeNames[i] + (muted[i] ? ".off" : ""), muted[i]));
-            return new ChimeManager(DemoFolder, files);
+                if (wanted[i]) wantedNames.Add(ChimeNames[i]);
+            }
+            return new ChimeManager(DemoFolder, files, "Default location", wantedNames);
         }
 
         static Bitmap RenderLogo(int size)
@@ -99,12 +110,13 @@ namespace EpicChimeMuter
         }
 
         // App window rendered at 2x with a soft drop shadow on a transparent background.
-        static void Screenshot(string path, ChimeManager mgr)
+        static void Screenshot(string path, ChimeManager mgr, bool settings)
         {
             const float s = 2f;
             const int pad = 48;
             using (var form = new MainForm(mgr))
             {
+                form.SettingsOpen = settings;
                 int w = (int)(MainForm.DesignWidth * s), h = (int)(form.DesignHeight * s);
                 using (var app = new Bitmap(w, h, PixelFormat.Format32bppArgb))
                 using (var outBmp = new Bitmap(w + pad * 2, h + pad * 2, PixelFormat.Format32bppArgb))
