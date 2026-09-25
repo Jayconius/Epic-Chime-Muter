@@ -43,6 +43,7 @@ namespace EpicChimeMuter
 
             Banner(Path.Combine(docs, "banner.png"));
             HowItWorks(Path.Combine(docs, "how-it-works.png"));
+            SocialPreview(Path.Combine(docs, "social-preview.png"), Demo(all, all));
             Console.WriteLine("Assets written.");
             return 0;
         }
@@ -145,6 +146,84 @@ namespace EpicChimeMuter
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
             return g;
+        }
+
+        // GitHub social preview (link cards on Discord, X, Reddit...): 1280x640, 2:1.
+        static void SocialPreview(string path, ChimeManager mgr)
+        {
+            const int W = 1280, H = 640;
+            const float appScale = 1.2f;
+            using (var bmp = new Bitmap(W, H, PixelFormat.Format32bppArgb))
+            using (Graphics g = Prep(bmp))
+            {
+                using (var bg = new LinearGradientBrush(new Rectangle(0, 0, W, H), Color.FromArgb(12, 12, 17), Color.FromArgb(8, 30, 66), 25f))
+                    g.FillRectangle(bg, 0, 0, W, H);
+
+                // glows: blue behind the text, softer behind the app
+                GlowAt(g, new RectangleF(-200, -120, 900, 760), Color.FromArgb(60, Art.Accent));
+                GlowAt(g, new RectangleF(640, -40, 700, 760), Color.FromArgb(55, Art.AccentLight));
+
+                // app window, tilted slightly and running off the bottom edge
+                using (var form = new MainForm(mgr))
+                {
+                    int aw = (int)(MainForm.DesignWidth * appScale), ah = (int)(form.DesignHeight * appScale);
+                    using (var app = new Bitmap(aw, ah, PixelFormat.Format32bppArgb))
+                    {
+                        using (Graphics ag = Graphics.FromImage(app)) form.RenderTo(ag, appScale);
+                        GraphicsState st = g.Save();
+                        g.TranslateTransform(1000, 400);
+                        g.RotateTransform(-4f);
+                        var r = new RectangleF(-aw / 2f, -ah / 2f + 90, aw, ah);
+                        for (int i = 30; i >= 1; i--)
+                            Art.FillRound(g, new RectangleF(r.X - i, r.Y - i + 16, r.Width + i * 2, r.Height + i * 2), 10 + i, Color.FromArgb(4, 0, 0, 0));
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(app, r);
+                        g.Restore(st);
+                    }
+                }
+
+                using (Bitmap logo = RenderLogo(112)) g.DrawImage(logo, 86, 116, 112, 112);
+
+                using (var fTitle = new Font("Segoe UI Semibold", 76f, GraphicsUnit.Pixel))
+                using (var fTag = new Font("Segoe UI", 31f, GraphicsUnit.Pixel))
+                using (var fPill = new Font("Segoe UI Semibold", 20f, GraphicsUnit.Pixel))
+                using (var fFoot = new Font("Segoe UI", 20f, GraphicsUnit.Pixel))
+                using (var white = new SolidBrush(Color.White))
+                using (var sub = new SolidBrush(Color.FromArgb(190, 196, 212)))
+                using (var dim = new SolidBrush(Color.FromArgb(120, 130, 150)))
+                {
+                    g.DrawString("Epic Chime\nMuter", fTitle, white, new RectangleF(76, 236, 700, 200));
+                    g.DrawString("Silence the Epic Games Launcher's\nparty & friend chimes. One click.", fTag, sub, new RectangleF(84, 448, 700, 90));
+
+                    float x = 86;
+                    foreach (string p in new[] { "Mute all or pick sounds", "Fully reversible", "Free" })
+                    {
+                        SizeF sz = g.MeasureString(p, fPill);
+                        var pr = new RectangleF(x, 552, sz.Width + 28, 40);
+                        Art.FillRound(g, pr, 20, Color.FromArgb(46, Art.AccentLight));
+                        using (var tb = new SolidBrush(Color.FromArgb(160, 205, 255)))
+                        using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                            g.DrawString(p, fPill, tb, pr, sf);
+                        x = pr.Right + 12;
+                    }
+                    g.DrawString("github.com/Jayconius/Epic-Chime-Muter", fFoot, dim, 86, 66);
+                }
+                bmp.Save(path, ImageFormat.Png);
+            }
+        }
+
+        static void GlowAt(Graphics g, RectangleF r, Color c)
+        {
+            using (var gp = new GraphicsPath())
+            {
+                gp.AddEllipse(r);
+                using (var pb = new PathGradientBrush(gp))
+                {
+                    pb.CenterColor = c;
+                    pb.SurroundColors = new[] { Color.FromArgb(0, c) };
+                    g.FillPath(pb, gp);
+                }
+            }
         }
 
         static void Banner(string path)
